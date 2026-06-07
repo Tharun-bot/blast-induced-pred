@@ -126,3 +126,148 @@ plt.tight_layout()
 plt.savefig('ppv_components.png', dpi=300, bbox_inches='tight')
 plt.show()
 print("Saved: ppv_components.png")
+
+# =====================================================
+# DAY 3 — DIRECTIONAL ATTENUATION ANALYSIS
+# =====================================================
+
+import os
+
+os.makedirs("figures", exist_ok=True)
+
+# -----------------------------------------------------
+# Derived variables
+# -----------------------------------------------------
+
+df['logSD'] = np.log10(df['SD'])
+
+df['ratio_VL'] = df['PPV_V'] / df['PPV_L']
+df['ratio_VT'] = df['PPV_V'] / df['PPV_T']
+df['ratio_LT'] = df['PPV_L'] / df['PPV_T']
+
+# =====================================================
+# FIGURE 1 — 4 PANEL ATTENUATION PLOT
+# =====================================================
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+targets = ['PPV_mms', 'PPV_V', 'PPV_L', 'PPV_T']
+
+titles = [
+    'Resultant PPV',
+    'Vertical (V)',
+    'Longitudinal (L)',
+    'Transverse (T)'
+]
+
+print("\n========== FIGURE 1 SLOPES ==========")
+
+for ax, col, title in zip(axes.flat, targets, titles):
+
+    y = np.log10(df[col])
+
+    ax.scatter(
+        df['logSD'],
+        y,
+        alpha=0.6,
+        s=30
+    )
+
+    m, c = np.polyfit(df['logSD'], y, 1)
+
+    ax.plot(
+        df['logSD'],
+        m * df['logSD'] + c,
+        'r-',
+        lw=2
+    )
+
+    print(f"{title}: slope = {m:.4f}")
+
+    ax.set_xlabel("log10(Scaled Distance)")
+    ax.set_ylabel(f"log10({title})")
+    ax.set_title(f"{title}\nSlope = {m:.3f}")
+    ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+
+plt.savefig(
+    "figures/fig1_attenuation_4panel.png",
+    dpi=300,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+print("Saved: figures/fig1_attenuation_4panel.png")
+
+# =====================================================
+# FIGURE 2 — COMPONENT RATIOS
+# =====================================================
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+pairs = [
+    ('ratio_VL', 'V/L'),
+    ('ratio_VT', 'V/T'),
+    ('ratio_LT', 'L/T')
+]
+
+print("\n========== FIGURE 2 SLOPES ==========")
+
+for ax, (col, label) in zip(axes, pairs):
+
+    ax.scatter(
+        df['SD'],
+        df[col],
+        alpha=0.5,
+        s=25
+    )
+
+    ax.axhline(
+        1.0,
+        color='red',
+        linestyle='--',
+        label='ratio = 1'
+    )
+
+    m, c = np.polyfit(df['SD'], df[col], 1)
+
+    x = np.linspace(
+        df['SD'].min(),
+        df['SD'].max(),
+        100
+    )
+
+    ax.plot(
+        x,
+        m * x + c,
+        'g-',
+        lw=2
+    )
+
+    print(f"{label}: slope = {m:.6f}")
+
+    ax.set_xlabel("Scaled Distance")
+    ax.set_ylabel(label)
+    ax.set_title(f"{label} Ratio")
+    ax.legend()
+
+plt.tight_layout()
+
+plt.savefig(
+    "figures/fig2_component_ratios.png",
+    dpi=300,
+    bbox_inches="tight"
+)
+
+plt.show()
+
+print("Saved: figures/fig2_component_ratios.png")
+
+print("\nDay 3 Complete")
+
+# =====================================================
+# DAY 4 — HP fitting per component
+# =====================================================
+
